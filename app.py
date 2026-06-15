@@ -24,10 +24,15 @@ if not st.session_state.started:
 
         st.write("""
 Learn anything in your own style.
+                 
+Tell us your interests and learn!
 
 ✅ Personalized Learning
+                 
 ✅ Interactive Quizzes
+                 
 ✅ Story Mode
+                 
 ✅ Exam Preparation
         """)
 

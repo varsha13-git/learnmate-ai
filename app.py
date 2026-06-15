@@ -1,115 +1,36 @@
-import streamlit as st
-import google.generativeai as genai
-
-if "topics_learned" not in st.session_state:
-    st.session_state.topics_learned = []
-
-genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
-
-model = genai.GenerativeModel("gemini-2.5-flash")
-
-st.title("🎓 LearnMate AI")
-
-st.caption(
-    "Your Personalized AI Learning Companion"
-)
-st.info(
-    """
-👋 Welcome to LearnMate AI!
-
-Tell me what you want to learn and I'll explain it based on your interests and learning style.
-
-✨ Features:
-- Personalized explanations
-- Story Mode
-- Visual Learning
-- Exam Preparation
-- Interactive Quizzes
-"""
-)
-col1, col2, col3 = st.columns(3)
-
-with col1:
-    if st.button("📝 Quiz Me"):
-        st.session_state.quick_prompt = "Quiz me on this topic"
-
-with col2:
-    if st.button("🎨 Give Example"):
-        st.session_state.quick_prompt = "Give me an example"
-
-with col3:
-    if st.button("📚 Simplify"):
-        st.session_state.quick_prompt = "Explain this in a simpler way"
-
-
-with st.sidebar:
-
-    st.title("👤 Student Profile")
-
-    name = st.text_input(
-    "Your Name",
-    placeholder="Enter your name"
-)
-
-    interest = st.text_area(
-    "Your Interests",
-    placeholder="Dance, Music, Art..."
-)
-    learning_style = st.selectbox(
-    "Learning Style",
-    [
-        "Beginner",
-        "Visual Learner",
-        "Exam Preparation",
-        "Story Mode"
-    ]
-)
-
-    st.markdown("---")
-
-    st.success("🚀 LearnMate AI")
-    st.markdown("### 📈 Learning History")
-
-    for topic in st.session_state.topics_learned[-5:]:
-        st.write("✅", topic)
-
-# Chat History
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-
-# Display old messages
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
-
 # Chat Input
 user_input = st.chat_input("Ask what you want to learn...")
 
-if "quick_prompt" in st.session_state:
-    user_input = st.session_state.quick_prompt
-    del st.session_state.quick_prompt
+final_input = user_input
 
-if user_input:
-    st.session_state.topics_learned.append(user_input)
+if "quick_prompt" in st.session_state:
+    final_input = st.session_state.pop("quick_prompt")
+
+if final_input:
+
+    if final_input not in st.session_state.topics_learned:
+        st.session_state.topics_learned.append(final_input)
 
     st.session_state.messages.append(
-        {"role": "user", "content": user_input}
+        {"role": "user", "content": final_input}
     )
 
     with st.chat_message("user"):
-        st.markdown(user_input)
+        st.markdown(final_input)
 
     prompt = f"""
-    Student Name: {name}
+You are an AI Learning Assistant.
 
-    Student Interests: {interest}
+Student Name: {name}
 
-    Learning Style: {learning_style}
+Student Interests: {interest}
 
-    The student asked:
-    {user_input}
+Learning Style: {learning_style}
 
-   Rules:
+The student asked:
+{final_input}
+
+Rules:
 
 1. If the student asks for a quiz, generate a quiz.
 2. If the student asks for examples, give examples.
@@ -132,11 +53,23 @@ If Learning Style is "Beginner",
 explain in the simplest way possible.
 
 Respond according to the student's request.
-    """
+"""
 
-    response = model.generate_content(prompt)
+    try:
+        response = model.generate_content(prompt)
 
-    ai_reply = response.text
+        ai_reply = response.text
+
+    except Exception as e:
+
+        if "ResourceExhausted" in str(e) or "429" in str(e):
+            ai_reply = (
+                "⚠️ Gemini API quota reached. "
+                "Please wait a few minutes and try again."
+            )
+
+        else:
+            ai_reply = f"Something went wrong: {str(e)}"
 
     st.session_state.messages.append(
         {"role": "assistant", "content": ai_reply}

@@ -175,6 +175,7 @@ Respond according to the student's request.
 
     st.session_state.messages.append(
         {"role": "assistant", "content": ai_reply}
+    )
 
     with st.chat_message("assistant"):
         st.markdown(ai_reply)

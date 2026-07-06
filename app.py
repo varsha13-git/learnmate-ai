@@ -68,10 +68,25 @@ Tell me what you want to learn and I'll explain it based on your interests and l
 """
 )
 col1, col2, col3 = st.columns(3)
-
 with col1:
     if st.button("📝 Quiz Me"):
-        st.session_state.quick_prompt = "Quiz me on this topic"
+
+if "last_topic" in st.session_state:
+    st.session_state.quick_prompt = f"""
+Generate a quiz ONLY on the following topic:
+
+{st.session_state.last_topic}
+
+Rules:
+- Create 5 multiple-choice questions.
+- Give 4 options for each question.
+- Ask one question at a time.
+- Wait for the student's answer before giving the next question.
+- At the end, show the score and explain any incorrect answers.
+"""
+
+else:
+    st.session_state.quick_prompt = "Please teach me a topic first."      
 
 with col2:
     if st.button("🎨 Give Example"):
@@ -130,6 +145,15 @@ if "quick_prompt" in st.session_state:
     del st.session_state.quick_prompt
 
 if user_input:
+
+    # Save the last topic studied (only for normal learning requests)
+    if not (
+        user_input.lower().startswith("quiz")
+        or user_input.lower().startswith("give")
+        or user_input.lower().startswith("explain this")
+    ):
+        st.session_state.last_topic = user_input
+
     st.session_state.topics_learned.append(user_input)
 
     st.session_state.messages.append(

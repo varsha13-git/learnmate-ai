@@ -68,11 +68,12 @@ Tell me what you want to learn and I'll explain it based on your interests and l
 """
 )
 col1, col2, col3 = st.columns(3)
+
 with col1:
     if st.button("📝 Quiz Me"):
 
-if "last_topic" in st.session_state:
-    st.session_state.quick_prompt = f"""
+        if "last_topic" in st.session_state:
+            st.session_state.quick_prompt = f"""
 Generate a quiz ONLY on the following topic:
 
 {st.session_state.last_topic}
@@ -84,9 +85,8 @@ Rules:
 - Wait for the student's answer before giving the next question.
 - At the end, show the score and explain any incorrect answers.
 """
-
-else:
-    st.session_state.quick_prompt = "Please teach me a topic first."      
+        else:
+            st.session_state.quick_prompt = "Please teach me a topic first."
 
 with col2:
     if st.button("🎨 Give Example"):
